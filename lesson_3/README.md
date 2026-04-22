@@ -320,7 +320,7 @@ load 'plot_animation.gnu'
 
 This script reads the saved blocks from `membrane.dat` and `interior.dat` and plays them as a 3D animation.
 
-## Final GNUplot script
+##GNUplot script
 
 ```gnuplot
 set terminal wxt size 800,800
