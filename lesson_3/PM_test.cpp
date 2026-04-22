@@ -12,6 +12,13 @@ int main() {
     const double R_membrane = 1.0;
     const double R_interior_max = 0.95;
 
+    // Euler motion parameters
+    const int N_steps = 1000;
+    const int output_every = 100;
+    const double dx = .001;
+    const double dy = 0;
+    const double dz = 0;
+
     std::vector<double> membraneX, membraneY, membraneZ;     // Vectors for membrane node positions
     std::vector<double> interiorX, interiorY, interiorZ;     // Vectors for interior node positions
 
@@ -36,6 +43,7 @@ int main() {
         membraneY.push_back(y);
         membraneZ.push_back(z);
     }
+    membraneFile << "\n\n";
 
     // Create interior nodes
     for (int i = 0; i < N_interior; i++) {
@@ -52,7 +60,38 @@ int main() {
         interiorY.push_back(y);
         interiorZ.push_back(z);
     }
+    interiorFile << "\n\n";
 
+    // Time stepping loop
+    for (int step = 0; step < N_steps; step++) {
+        for (int i = 0; i < N_membrane; i++) {
+            membraneX[i] += dx;
+            membraneY[i] += dy;
+            membraneZ[i] += dz;
+        }
+
+        for (int i = 0; i < N_interior; i++) {
+            interiorX[i] += dx;
+            interiorY[i] += dy;
+            interiorZ[i] += dz;
+        }
+
+        if (step % output_every == 0) {
+            for (int i = 0; i < N_membrane; i++) {
+                membraneFile << membraneX[i] << " "
+                             << membraneY[i] << " "
+                             << membraneZ[i] << "\n";
+            }
+            membraneFile << "\n\n";
+
+            for (int i = 0; i < N_interior; i++) {
+                interiorFile << interiorX[i] << " "
+                             << interiorY[i] << " "
+                             << interiorZ[i] << "\n";
+            }
+            interiorFile << "\n\n";
+        }
+    }
     membraneFile.close();
     interiorFile.close();
 
