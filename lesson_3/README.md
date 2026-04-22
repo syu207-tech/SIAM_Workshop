@@ -54,4 +54,90 @@ interiorX.push_back(x);
 interiorY.push_back(y);
 interiorZ.push_back(z);
 ```
-We will write to file later.
+### New Write to file code
+Copy these new code block to your code to write to file, somewhere after the initialization loops.
+```cpp
+// Write final membrane positions to file
+    std::ofstream membraneFile("membrane.dat");
+    for (int i = 0; i < N_membrane; i++) {
+        membraneFile << membraneX[i] << " "
+                     << membraneY[i] << " "
+                     << membraneZ[i] << "\n";
+    }
+    membraneFile << "\n";
+``
+```cpp
+// Write final interior positions to file
+    std::ofstream interiorFile("interior.dat");
+    for (int i = 0; i < N_interior; i++) {
+        interiorFile << interiorX[i] << " "
+                     << interiorY[i] << " "
+                     << interiorZ[i] << "\n";
+    }
+    interiorFile << "\n";
+```
+---
+# Euler Algorithm
+Now it's time to add motion via the Euler Algorithm. The Euler method is a simple way to update a quantity step by step in time. Mathematically, it is a discrete approximation of an integration in time. The basic idea is
+
+```
+new value = old value +rate
+```
+
+We will need to do this for each component of the location of the node, so there will be a Euler method for each `x`, `y`, `z` direction. The `time step` is predefined and you can change it to increase or decrease the duration of the simulation. 
+
+Add the following code to your variable section.
+
+```cpp
+// Euler motion parameters
+    const int N_steps = 1000;
+    const double dx = 0.01;
+    const double dy = 0.0;
+    const double dz = 0.0;
+```
+Based on these variables, which direction do you think the cell will move?
+
+## Time Step
+Here is the plan. For each time step, we will add the rate to each component of the location of the node. We will do this for both the membrane and interior nodes. We will also write to file the new location of the nodes. Copy this after the the initialization and writing to file.
+```cpp
+// Time stepping loop
+for (int step = 0; step < N_steps; step++) {
+
+    // Update membrane node locations
+    for (int i = 0; i < N_membrane; i++) {
+        membraneX[i] += dx;
+        membraneY[i] += dy;
+        membraneZ[i] += dz;
+    }
+
+    // Update interior node locations
+    for (int i = 0; i < N_interior; i++) {
+        interiorX[i] += dx;
+        interiorY[i] += dy;
+        interiorZ[i] += dz;
+    }
+
+    // Write membrane nodes for this time step
+    for (int i = 0; i < N_membrane; i++) {
+        membraneFile << membraneX[i] << " "
+                        << membraneY[i] << " "
+                        << membraneZ[i] << "\n";
+    }
+    membraneFile << "\n";
+
+    // Write interior nodes for this time step
+    for (int i = 0; i < N_interior; i++) {
+        interiorFile << interiorX[i] << " "
+                        << interiorY[i] << " "
+                        << interiorZ[i] << "\n";
+    }
+    interiorFile << "\n";
+}
+```
+# Visualize Motion
+Let's see the cell move! You will notice that this week's lesson comes with a `.gnu` file. This is just a document with a script for `gnuplot`. So instead of entering the script manually, you can run the `.gnu` file in `gnuplot`.
+
+```gnuplot
+load 'plot_animation.gnu'
+```
+---
