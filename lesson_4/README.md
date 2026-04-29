@@ -894,11 +894,12 @@ int main() {
 ---
 
 # Visualizing with GNUplot
-The steps are the same as in previous week. This week however, the `plot_animation.gnu` is in 2D to make viewing the simulation easier.
+The steps are the same as in previous week. This week however, the `plot_animation.gnu` is in 2D to make viewing the simulation easier. It will also save the file as a `gif` which you can view in VScode. It should work for Windows, Mac and Linux.
 To view the simulation, open `GNUplot` in the folder for `lesson_4` and run
 ```gnuplot
 load 'plot_animation.gnu'
 ```
+Then click on `psuedo_movement.gif` to view the animation.
 ---
 
 # Try-It-Yourself Ideas
