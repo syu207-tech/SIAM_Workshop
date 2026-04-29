@@ -105,11 +105,10 @@ Your folder should look something like this:
 
 ```text
 lesson_4/
-├── Psuedo_movement_with_forces.cpp
 ├── forces.h
 ├── plot_animation.gnu
-├── membrane.dat
-└── interior.dat
+├── Psuedo_movement_random.cpp
+└── Psuedo_movement_with_forces.cpp
 ```
 
 ---
@@ -253,8 +252,8 @@ F_Morse(r) = (U0 / k1) * exp(-r / k1) - (V0 / k2) * exp(-r / k2)
 where:
 
 - `r` is the distance between two nodes,
-- `U0` controls one part of the interaction,
-- `V0` controls another part of the interaction,
+- `U0` controls the attraction force,
+- `V0` controls replusion force,
 - `k1` and `k2` control how quickly the interaction decays with distance.
 
 The exponential terms make the force strongest when nodes are close and weaker when nodes are farther apart.
@@ -399,105 +398,6 @@ Bending is important because the membrane is not just a collection of separate s
 
 ---
 
-# Summary of force functions used directly
-
-Inside the time-stepping loop, the new code calls several force functions from `forces.h`.
-
-## `resetForces`
-
-```cpp
-resetForces(membraneFx, membraneFy, membraneFz);
-resetForces(interiorFx, interiorFy, interiorFz);
-```
-
-Sets all force values back to zero before computing the forces for the current time step.
-
----
-
-## `addMembraneMembraneMorseForces`
-
-```cpp
-addMembraneMembraneMorseForces(
-    membraneX, membraneY, membraneZ,
-    membraneFx, membraneFy, membraneFz
-);
-```
-
-Adds Morse interaction forces between membrane nodes.
-
----
-
-## `addMembraneSpringForces`
-
-```cpp
-addMembraneSpringForces(
-    membraneX, membraneY, membraneZ,
-    membraneFx, membraneFy, membraneFz
-);
-```
-
-Adds spring forces between neighboring membrane nodes.
-
-This helps preserve the membrane structure.
-
----
-
-## `addMembraneBendingForces`
-
-```cpp
-addMembraneBendingForces(
-    membraneX, membraneY, membraneZ,
-    membraneFx, membraneFy, membraneFz
-);
-```
-
-Adds bending forces to the membrane.
-
-This helps keep the membrane smooth.
-
----
-
-## `addMembraneInteriorMorseForces`
-
-```cpp
-addMembraneInteriorMorseForces(
-    membraneX, membraneY, membraneZ,
-    interiorX, interiorY, interiorZ,
-    membraneFx, membraneFy, membraneFz
-);
-```
-
-Adds the effect of interior nodes on membrane nodes.
-
----
-
-## `addMembraneInteriorMorseForcesOnInterior`
-
-```cpp
-addMembraneInteriorMorseForcesOnInterior(
-    membraneX, membraneY, membraneZ,
-    interiorX, interiorY, interiorZ,
-    interiorFx, interiorFy, interiorFz
-);
-```
-
-Adds the effect of membrane nodes on interior nodes.
-
----
-
-## `addInteriorInteriorMorseForces`
-
-```cpp
-addInteriorInteriorMorseForces(
-    interiorX, interiorY, interiorZ,
-    interiorFx, interiorFy, interiorFz
-);
-```
-
-Adds Morse interaction forces between interior nodes.
-
----
-
 # The helper `writeFrame` function
 
 The previous code wrote the membrane and interior data directly inside the time-stepping loop.
@@ -564,7 +464,6 @@ if (step % output_every == 0) {
 This keeps the program cleaner.
 
 ---
----
 
 # Warning: Large simulations can take time
 
@@ -609,8 +508,6 @@ On one test run, the code took approximately:
 1,000 steps  → 1.52 seconds
 10,000 steps → 15 seconds
 ```
-
-This suggests the runtime is scaling almost linearly with the number of time steps.
 
 Using this estimate:
 
@@ -811,147 +708,7 @@ Then add the forces back one at a time.
 
 # Full code
 
-Paste the full final code for `Psuedo_movement_with_forces.cpp` here.
-
 ```cpp
-// Paste full code here
-```
-
----
-
-# Visualizing with GNUplot
-
-The output format is the same as before.
-
-The program writes multiple frames into:
-
-```text
-membrane.dat
-interior.dat
-```
-
-Each frame is separated by two blank lines:
-
-```cpp
-membraneFile << "\n\n";
-interiorFile << "\n\n";
-```
-
-GNUplot reads these separated blocks using `index i`.
-
-If your GNUplot script has:
-
-```gnuplot
-Nsteps = 10
-```
-
-make sure this matches the number of frames written by your code.
-
-Since the updated code writes the initial frame first and then writes every `output_every` steps, the number of frames may be one more than before.
-
-For example:
-
-```cpp
-const int N_steps = 1000;
-const int output_every = 100;
-```
-
-writes frames at:
-
-```text
-initial frame
-step 100
-step 200
-step 300
-...
-step 1000
-```
-
-That gives 11 frames total.
-
-So your GNUplot script may need:
-
-```gnuplot
-Nsteps = 11
-```
-
----
-
-# Try-It-Yourself Ideas
-
-Once the code runs, try changing one feature at a time.
-
-## Change the random step size
-
-Try:
-
-```cpp
-const double random_step_max = 0.005;
-```
-
-or:
-
-```cpp
-const double random_step_max = 0.001;
-```
-
-Question: does the cell stay together better when the random motion is smaller?
-
----
-
-## Change the time step
-
-Try:
-
-```cpp
-const double dt = 0.000001;
-```
-
-Question: does the motion become more stable?
-
----
-
-## Turn off random motion
-
-Try:
-
-```cpp
-const double random_step_max = 0.0;
-```
-
-Question: what do the forces do by themselves?
-
----
-
-## Turn off one force at a time
-
-Comment out one force function call and rerun the code.
-
-For example:
-
-```cpp
-// addMembraneBendingForces(...);
-```
-
-Question: what happens to the membrane when the bending force is removed?
-
----
-
-## Change the number of nodes
-
-Try changing:
-
-```cpp
-const int N_membrane = 120;
-const int N_interior = 120;
-```
-
-Question: does the simulation look smoother with more nodes? Does it run slower?
-
----
-
-# Full Code
-
 ```cpp
 #include <fstream>
 #include <iostream>
@@ -1133,5 +890,87 @@ int main() {
 
     return 0;
 }
-
 ```
+---
+
+# Visualizing with GNUplot
+The steps are the same as in previous week. This week however, the `plot_animation.gnu` is in 2D to make viewing the simulation easier.
+To view the simulation, open `GNUplot` in the folder for `lesson_4` and run
+```gnuplot
+load 'plot_animation.gnu'
+```
+---
+
+# Try-It-Yourself Ideas
+
+Once the code runs, try changing one feature at a time.
+
+## Change the random step size
+
+Try:
+
+```cpp
+const double random_step_max = 0.0005;
+```
+
+or:
+
+```cpp
+const double random_step_max = 0.00001;
+```
+
+Question: does the cell stay together better when the random motion is smaller?
+
+---
+
+## Change the time step
+
+Try:
+
+```cpp
+const double dt = 0.000001;
+```
+
+Question: does the motion become more stable?
+
+---
+
+## Turn off random motion
+
+Try:
+
+```cpp
+const double random_step_max = 0.0;
+```
+
+Question: what do the forces do by themselves?
+
+---
+
+## Turn off one force at a time
+
+Comment out one force function call and rerun the code.
+
+For example:
+
+```cpp
+// addMembraneBendingForces(...);
+```
+
+Question: what happens to the membrane when the bending force is removed?
+
+---
+
+## Change the number of nodes
+
+Try changing:
+
+```cpp
+const int N_membrane = 120;
+const int N_interior = 120;
+```
+
+Question: does the simulation look smoother with more nodes? Does it run slower?
+
+---
+

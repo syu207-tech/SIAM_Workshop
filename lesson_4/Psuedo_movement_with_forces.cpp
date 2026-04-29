@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "forces.h"
-#include <chrono>
 
 int main() {
     const int N_membrane = 120;
@@ -96,7 +95,7 @@ int main() {
 
     // Write initial cell position
     writeFrame();
-auto start = std::chrono::high_resolution_clock::now();
+
     // Time stepping loop
     for (int step = 1; step <= N_steps; step++) {
 
@@ -172,11 +171,6 @@ auto start = std::chrono::high_resolution_clock::now();
             writeFrame();
         }
     }
-    auto end = std::chrono::high_resolution_clock::now();
-
-std::chrono::duration<double> elapsed = end - start;
-
-std::cout << "Simulation time: " << elapsed.count() << " seconds\n";
     membraneFile.close();
     interiorFile.close();
 
