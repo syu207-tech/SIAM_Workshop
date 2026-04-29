@@ -4,7 +4,7 @@
 #include <random>
 #include <vector>
 
-#include "forces.h"
+
 
 int main() {
     const int N_membrane = 120;
@@ -14,24 +14,20 @@ int main() {
     const double R_membrane = 1.0;
     const double R_interior_max = 0.95;
 
-    // Euler motion parameters
-    const int N_steps = 10000;
-    const int output_every = 1000;
-
-    // dt controls how strongly forces move the nodes each time step.
-    const double dt = 0.0001;
-
-    // Random motion parameters
-    // Each node moves in a random direction with random length between 0 and 0.001.
     const double random_step_max = 0.001;
 
-    std::vector<double> membraneX, membraneY, membraneZ;     // Membrane node positions
-    std::vector<double> interiorX, interiorY, interiorZ;     // Interior node positions
+    // Euler motion parameters
+    const int N_steps = 1000000;
+    const int output_every = 100000;
+   
+
+    std::vector<double> membraneX, membraneY, membraneZ;     // Vectors for membrane node positions
+    std::vector<double> interiorX, interiorY, interiorZ;     // Vectors for interior node positions
 
     std::ofstream membraneFile("membrane.dat");
     std::ofstream interiorFile("interior.dat");
 
-    // Random number generator
+    // Random number generator for interior nodes
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> angleDist(0.0, 2.0 * PI);
@@ -50,6 +46,7 @@ int main() {
         membraneY.push_back(y);
         membraneZ.push_back(z);
     }
+    membraneFile << "\n\n";
 
     // Create interior nodes
     for (int i = 0; i < N_interior; i++) {
@@ -66,109 +63,50 @@ int main() {
         interiorY.push_back(y);
         interiorZ.push_back(z);
     }
-
-    // Force vectors
-    std::vector<double> membraneFx(N_membrane, 0.0);
-    std::vector<double> membraneFy(N_membrane, 0.0);
-    std::vector<double> membraneFz(N_membrane, 0.0);
-
-    std::vector<double> interiorFx(N_interior, 0.0);
-    std::vector<double> interiorFy(N_interior, 0.0);
-    std::vector<double> interiorFz(N_interior, 0.0);
-
-    // Helper function for writing one animation frame
-    auto writeFrame = [&]() {
-        for (int i = 0; i < N_membrane; i++) {
-            membraneFile << membraneX[i] << " "
-                         << membraneY[i] << " "
-                         << membraneZ[i] << "\n";
-        }
-        membraneFile << "\n\n";
-
-        for (int i = 0; i < N_interior; i++) {
-            interiorFile << interiorX[i] << " "
-                         << interiorY[i] << " "
-                         << interiorZ[i] << "\n";
-        }
-        interiorFile << "\n\n";
-    };
-
-    // Write initial cell position
-    writeFrame();
+    interiorFile << "\n\n";
 
     // Time stepping loop
-    for (int step = 1; step <= N_steps; step++) {
-
-        // Reset all forces to zero at the start of each time step
-        resetForces(membraneFx, membraneFy, membraneFz);
-        resetForces(interiorFx, interiorFy, interiorFz);
-
-        // Add membrane forces
-        addMembraneMembraneMorseForces(
-            membraneX, membraneY, membraneZ,
-            membraneFx, membraneFy, membraneFz
-        );
-
-        addMembraneSpringForces(
-            membraneX, membraneY, membraneZ,
-            membraneFx, membraneFy, membraneFz
-        );
-
-        addMembraneBendingForces(
-            membraneX, membraneY, membraneZ,
-            membraneFx, membraneFy, membraneFz
-        );
-
-        // Add membrane-interior forces on the membrane nodes
-        addMembraneInteriorMorseForces(
-            membraneX, membraneY, membraneZ,
-            interiorX, interiorY, interiorZ,
-            membraneFx, membraneFy, membraneFz
-        );
-
-        // Add membrane-interior forces on the interior nodes
-        addMembraneInteriorMorseForcesOnInterior(
-            membraneX, membraneY, membraneZ,
-            interiorX, interiorY, interiorZ,
-            interiorFx, interiorFy, interiorFz
-        );
-
-        // Add interior-interior forces
-        addInteriorInteriorMorseForces(
-            interiorX, interiorY, interiorZ,
-            interiorFx, interiorFy, interiorFz
-        );
-
-        // Euler update for membrane nodes
+    for (int step = 0; step < N_steps; step++) {
         for (int i = 0; i < N_membrane; i++) {
             double theta_random = angleDist(gen);
             double random_length = randomLengthDist(gen);
 
-            double random_dx = random_length * std::cos(theta_random);
-            double random_dy = random_length * std::sin(theta_random);
-            double random_dz = 0.0;
+            double dx = random_length * std::cos(theta_random);
+            double dy = random_length * std::sin(theta_random);
+            double dz = 0;
 
-            membraneX[i] += dt * membraneFx[i] + random_dx;
-            membraneY[i] += dt * membraneFy[i] + random_dy;
-            membraneZ[i] += dt * membraneFz[i] + random_dz;
+            membraneX[i] += dx;
+            membraneY[i] += dy;
+            membraneZ[i] += dz;
         }
 
-        // Euler update for interior nodes
         for (int i = 0; i < N_interior; i++) {
             double theta_random = angleDist(gen);
             double random_length = randomLengthDist(gen);
 
-            double random_dx = random_length * std::cos(theta_random);
-            double random_dy = random_length * std::sin(theta_random);
-            double random_dz = 0.0;
+            double dx = random_length * std::cos(theta_random);
+            double dy = random_length * std::sin(theta_random);
+            double dz = 0;
 
-            interiorX[i] += dt * interiorFx[i] + random_dx;
-            interiorY[i] += dt * interiorFy[i] + random_dy;
-            interiorZ[i] += dt * interiorFz[i] + random_dz;
+            interiorX[i] += dx;
+            interiorY[i] += dy;
+            interiorZ[i] += dz;
         }
 
         if (step % output_every == 0) {
-            writeFrame();
+            for (int i = 0; i < N_membrane; i++) {
+                membraneFile << membraneX[i] << " "
+                             << membraneY[i] << " "
+                             << membraneZ[i] << "\n";
+            }
+            membraneFile << "\n\n";
+
+            for (int i = 0; i < N_interior; i++) {
+                interiorFile << interiorX[i] << " "
+                             << interiorY[i] << " "
+                             << interiorZ[i] << "\n";
+            }
+            interiorFile << "\n\n";
         }
     }
     membraneFile.close();
