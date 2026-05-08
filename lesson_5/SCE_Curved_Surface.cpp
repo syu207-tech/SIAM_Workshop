@@ -6,6 +6,15 @@
 
 #include "forces.h"
 
+// Curved substrate parameters
+const double surfacePar_a = 0.10;
+const double surfacePar_b = 1.00;
+
+// Curved substrate function
+double surfaceZ(double x, double y) {
+    return surfacePar_a * std::cos(x / surfacePar_b);
+}
+
 int main() {
     const int N_membrane = 120;
     const int N_interior = 120;
@@ -23,7 +32,7 @@ int main() {
 
     // Random motion parameters
     // Each node moves in a random direction with random length between 0 and 0.001.
-    const double random_step_max = 0.001;
+    const double random_step_max = 0.0001;
 
     std::vector<double> membraneX, membraneY, membraneZ;     // Membrane node positions
     std::vector<double> interiorX, interiorY, interiorZ;     // Interior node positions
@@ -44,7 +53,7 @@ int main() {
 
         double x = R_membrane * std::cos(theta);
         double y = R_membrane * std::sin(theta);
-        double z = 0.0;
+        double z = surfaceZ(x, y);
 
         membraneX.push_back(x);
         membraneY.push_back(y);
@@ -60,7 +69,7 @@ int main() {
 
         double x = r * std::cos(theta);
         double y = r * std::sin(theta);
-        double z = 0.0;
+        double z = surfaceZ(x, y);
 
         interiorX.push_back(x);
         interiorY.push_back(y);
@@ -141,7 +150,8 @@ int main() {
 
         // Euler update for membrane nodes
         for (int i = 0; i < N_membrane; i++) {
-            double theta_random = angleDist(gen);
+            // Move membrane nodes in a fixed direction.
+            double theta_random = -PI;
             double random_length = randomLengthDist(gen);
 
             double random_dx = random_length * std::cos(theta_random);
@@ -150,13 +160,15 @@ int main() {
 
             membraneX[i] += dt * membraneFx[i] + random_dx;
             membraneY[i] += dt * membraneFy[i] + random_dy;
-            membraneZ[i] += dt * membraneFz[i] + random_dz;
+            membraneZ[i] = surfaceZ(membraneX[i], membraneY[i]);
         }
 
         // Euler update for interior nodes
         for (int i = 0; i < N_interior; i++) {
-            double theta_random = angleDist(gen);
-            double random_length = randomLengthDist(gen);
+            // Interior nodes do not receive direct random motion.
+            // They move because they are connected to the rest of the cell through forces.
+            double theta_random = PI;
+            double random_length = 0.0;
 
             double random_dx = random_length * std::cos(theta_random);
             double random_dy = random_length * std::sin(theta_random);
@@ -164,7 +176,7 @@ int main() {
 
             interiorX[i] += dt * interiorFx[i] + random_dx;
             interiorY[i] += dt * interiorFy[i] + random_dy;
-            interiorZ[i] += dt * interiorFz[i] + random_dz;
+            interiorZ[i] = surfaceZ(interiorX[i], interiorY[i]);
         }
 
         if (step % output_every == 0) {

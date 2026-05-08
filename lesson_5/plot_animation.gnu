@@ -1,4 +1,5 @@
-set terminal qt size 800,800
+set terminal gif animate delay 50 size 800,800
+set out "Pseudo_movement.gif"
 
 set title "Pseudo Cell Movement on Curved Surface"
 set xlabel "x"
@@ -19,7 +20,7 @@ set view 70, 225
 set samples 80
 set isosamples 80
 
-surface(x,y) = 0.2*cos(x)
+surface(x,y) = 0.1*cos(x)
 
 # Gradient surface
 set pm3d at s
@@ -36,5 +37,6 @@ do for [i=0:Nsteps-1] {
         'membrane.dat' index i using 1:2:($3 + 0.02) with points pt 7 ps 1.4 lc rgb "black", \
         'interior.dat' index i using 1:2:($3 + 0.02) with points pt 7 ps 1.0 lc rgb "red"
         
-    pause .5
 }
+
+set output
